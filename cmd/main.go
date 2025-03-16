@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"go-api/controller"
