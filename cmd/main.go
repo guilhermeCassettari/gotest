@@ -6,19 +6,21 @@ import (
 	"go-api/repository"
 	usecase "go-api/useCase"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-// reflex -r '\.go$' -- go run main.go
+var server *gin.Engine
 
-func main() {
+func init() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-	server := gin.Default()
+	server = gin.Default()
 
 	dbConnection, err := db.ConnectDB()
 	if err != nil {
@@ -40,6 +42,18 @@ func main() {
 	server.POST("/product", ProductController.CreateProduct)
 
 	server.GET("/product/:id", ProductController.GetProductById)
+}
 
-	server.Run(":8080")
+func Handler(w http.ResponseWriter, r *http.Request) {
+	server.ServeHTTP(w, r)
+}
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := http.ListenAndServe(":"+port, http.HandlerFunc(Handler)); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
